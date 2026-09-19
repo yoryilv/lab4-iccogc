@@ -89,9 +89,10 @@ Abre tu navegador en: **http://localhost:5001**
 
 | Email | Contraseña | Rol |
 |---|---|---|
-| `jorge.leandro@utec.edu.pe` | `Admin1234!` | `admin` |
-| `jfarfan@utec.edu.pe` | `Admin1234!` | `admin` |
+| *(correo educativo @utec.edu.pe)* | `Admin1234!` | `admin` |
+| *(correo educativo @utec.edu.pe)* | `Admin1234!` | `admin` |
 
+> Los correos de acceso son institucionales. La contraseña es la misma para ambas cuentas de prueba.  
 > Puedes crear más cuentas desde la pantalla de **Registro** (`/register`) sin necesidad de acceso previo.
 
 ---
