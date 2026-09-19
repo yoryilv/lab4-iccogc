@@ -56,5 +56,6 @@ logs/
 *.sqlite3
 
 # Distribution / packaging
-.eggs/
+*.eggs/
 *.egg-info/
+*.docx
