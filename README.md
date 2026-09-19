@@ -19,15 +19,13 @@ Acceder en: **http://localhost:5001**
 
 Contraseña general: **`Admin1234!`**
 
-> Los correos son institucionales (@utec.edu.pe).  
-> También puedes registrar una cuenta nueva desde `/register`.
+> Los correos son institucionales (@utec.edu.pe).
 
 ---
 
 ## 📋 Flujo de Autenticación
 
 ```
-[0] Registro (opcional)    → /register
 [1] Login email + password → /login
 [2] Código OTP enviado al correo (ver logs si MAIL_SUPPRESS_SEND=True)
 [3] Verificación OTP       → /verify-otp
