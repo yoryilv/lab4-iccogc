@@ -44,6 +44,51 @@ class OTPForm(FlaskForm):
     submit = SubmitField("Verificar Código")
 
 
+class RegisterForm(FlaskForm):
+    """Public registration form for new users."""
+
+    nombre = StringField(
+        "Nombre Completo",
+        validators=[
+            DataRequired(message="El nombre completo es obligatorio."),
+            Length(min=2, max=120, message="El nombre debe tener entre 2 y 120 caracteres."),
+        ],
+        render_kw={"placeholder": "Ej: Juan Pérez", "autocomplete": "name"},
+    )
+    email = StringField(
+        "Correo Electrónico",
+        validators=[
+            DataRequired(message="El correo electrónico es obligatorio."),
+            Email(message="Ingresa un correo electrónico válido."),
+            Length(max=255),
+        ],
+        render_kw={"placeholder": "usuario@utec.edu.pe", "autocomplete": "email"},
+    )
+    password = PasswordField(
+        "Contraseña",
+        validators=[
+            DataRequired(message="La contraseña es obligatoria."),
+            Length(min=8, message="La contraseña debe tener al menos 8 caracteres."),
+        ],
+        render_kw={"placeholder": "Mínimo 8 caracteres", "autocomplete": "new-password"},
+    )
+    confirm_password = PasswordField(
+        "Confirmar Contraseña",
+        validators=[
+            DataRequired(message="Confirma la contraseña."),
+            EqualTo("password", message="Las contraseñas no coinciden."),
+        ],
+        render_kw={"placeholder": "Repite tu contraseña", "autocomplete": "new-password"},
+    )
+    rol = SelectField(
+        "Rol",
+        choices=[("usuario", "Usuario"), ("admin", "Administrador")],
+        default="usuario",
+        validators=[DataRequired(message="El rol es obligatorio.")],
+    )
+    submit = SubmitField("Crear Cuenta")
+
+
 class UserCreateForm(FlaskForm):
     """Form for creating a new user."""
 

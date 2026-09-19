@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Cuenta – Flask Lab{% endblock %}
+
+{% block auth_content %}
+<div class="auth-page">
+  <div class="auth-container" style="max-width: 480px;">
+
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="auth-logo">🔐</div>
+      <h1 style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">
+        Flask Lab
+      </h1>
+      <p style="font-size:14px;color:var(--text-muted);">
+        Panel de Administración · Laboratorio 4
+      </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}" role="alert">
+      <span>{% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}</span>
+      <span>{{ message }}</span>
+      <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Register Card -->
+    <div class="auth-card">
+      <!-- Nav Tabs -->
+      <div class="auth-tabs" style="display:flex;background:var(--bg-primary);padding:4px;border-radius:10px;margin-bottom:24px;border:1px solid var(--border-color);">
+        <a href="{{ url_for('auth.login') }}" style="flex:1;text-align:center;padding:9px 12px;border-radius:7px;text-decoration:none;font-size:14px;font-weight:600;color:var(--text-muted);transition:all 0.2s;">
+          🔑 Iniciar Sesión
+        </a>
+        <a href="{{ url_for('auth.register') }}" style="flex:1;text-align:center;padding:9px 12px;border-radius:7px;text-decoration:none;font-size:14px;font-weight:600;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,0.4);">
+          ✨ Crear Cuenta
+        </a>
+      </div>
+
+      <h2 class="auth-title">Crear nueva cuenta</h2>
+      <p class="auth-subtitle">Formulario de registro · Campos obligatorios (<span style="color:var(--danger)">*</span>)</p>
+
+      <form method="POST" action="{{ url_for('auth.register') }}" novalidate id="registerForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Nombre Completo -->
+        <div class="form-group">
+          <label class="form-label" for="nombre">
+            👤 {{ form.nombre.label.text }} <span style="color:var(--danger)">*</span>
+          </label>
+          {{ form.nombre(
+            class="form-control" + (" is-invalid" if form.nombre.errors else ""),
+            id="nombre",
+            autofocus=true,
+            required=true
+          ) }}
+          {% for error in form.nombre.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Correo Electrónico -->
+        <div class="form-group">
+          <label class="form-label" for="email">
+            📧 {{ form.email.label.text }} <span style="color:var(--danger)">*</span>
+          </label>
+          {{ form.email(
+            class="form-control" + (" is-invalid" if form.email.errors else ""),
+            id="email",
+            required=true
+          ) }}
+          {% for error in form.email.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Rol -->
+        <div class="form-group">
+          <label class="form-label" for="rol">
+            🛡️ {{ form.rol.label.text }} <span style="color:var(--danger)">*</span>
+          </label>
+          {{ form.rol(
+            class="form-control form-select" + (" is-invalid" if form.rol.errors else ""),
+            id="rol",
+            required=true
+          ) }}
+          {% for error in form.rol.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+          <label class="form-label" for="password">
+            🔑 {{ form.password.label.text }} <span style="color:var(--danger)">*</span>
+          </label>
+          <div style="position:relative;">
+            {{ form.password(
+              class="form-control" + (" is-invalid" if form.password.errors else ""),
+              id="password",
+              style="padding-right:48px;",
+              required=true
+            ) }}
+            <button type="button" class="toggle-pwd" data-target="password"
+              style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                     background:none;border:none;cursor:pointer;color:var(--text-muted);
+                     font-size:16px;padding:4px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.password.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+
+          <!-- Password strength bar -->
+          <div style="margin-top:8px;">
+            <div style="height:4px;background:var(--border-color);border-radius:2px;overflow:hidden;">
+              <div id="strengthBar" style="height:100%;width:0;transition:width 0.3s,background 0.3s;border-radius:2px;"></div>
+            </div>
+            <div id="strengthLabel" style="font-size:11px;color:var(--text-muted);margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">
+            🔒 {{ form.confirm_password.label.text }} <span style="color:var(--danger)">*</span>
+          </label>
+          <div style="position:relative;">
+            {{ form.confirm_password(
+              class="form-control" + (" is-invalid" if form.confirm_password.errors else ""),
+              id="confirm_password",
+              style="padding-right:48px;",
+              required=true
+            ) }}
+            <button type="button" class="toggle-pwd" data-target="confirm_password"
+              style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                     background:none;border:none;cursor:pointer;color:var(--text-muted);
+                     font-size:16px;padding:4px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.confirm_password.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary" id="submitBtn"
+          style="width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:12px;">
+          <span id="submitText">Crear Cuenta</span>
+          <span id="submitSpinner" style="display:none;">⏳</span>
+        </button>
+      </form>
+
+      <!-- Already have account link -->
+      <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-color);font-size:14px;color:var(--text-muted);">
+        ¿Ya tienes una cuenta?
+        <a href="{{ url_for('auth.login') }}" style="color:var(--accent);font-weight:600;text-decoration:none;margin-left:4px;">
+          Iniciar sesión
+        </a>
+      </div>
+    </div>
+
+    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-muted);">
+      Flask Lab · Laboratorio de Desarrollo Web Cognitivo
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-pwd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      btn.textContent = isText ? '👁️' : '🙈';
+    });
+  });
+
+  // Password strength meter
+  const pwdInput = document.getElementById('password');
+  const bar = document.getElementById('strengthBar');
+  const label = document.getElementById('strengthLabel');
+
+  pwdInput.addEventListener('input', () => {
+    const val = pwdInput.value;
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+      { width: '0%',   color: '',        text: '' },
+      { width: '25%',  color: '#ef4444', text: 'Débil (muy corta)' },
+      { width: '50%',  color: '#f97316', text: 'Regular (agrega mayúsculas o números)' },
+      { width: '75%',  color: '#eab308', text: 'Buena' },
+      { width: '100%', color: '#22c55e', text: 'Excelente (fuerte)' },
+    ];
+    const lvl = levels[val.length === 0 ? 0 : score];
+    bar.style.width = lvl.width;
+    bar.style.background = lvl.color;
+    label.textContent = lvl.text;
+  });
+
+  // Loading state on submit
+  document.getElementById('registerForm').addEventListener('submit', () => {
+    const btn = document.getElementById('submitBtn');
+    const text = document.getElementById('submitText');
+    const spin = document.getElementById('submitSpinner');
+    btn.disabled = true;
+    text.textContent = 'Registrando...';
+    spin.style.display = 'inline';
+  });
+</script>
+{% endblock %}

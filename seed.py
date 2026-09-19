@@ -17,9 +17,7 @@ ADMIN_PASSWORD = "Admin1234!"
 ADMIN_NAME     = "Administrador"
 
 # ── Extra test users (email, name, role) ──────────────────────────────────────
-EXTRA_USERS = [
-    ("jfarfan@utec.edu.pe", "J. Farfan", "admin"),
-]
+EXTRA_USERS = []
 
 
 def _seed_user(email: str, nombre: str, rol: str, password: str) -> None:

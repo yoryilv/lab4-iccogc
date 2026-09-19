@@ -10,8 +10,9 @@ from flask import (
     current_app,
 )
 from flask_login import login_user, logout_user, login_required, current_user
+from app import db
 from app.models import User
-from app.forms import LoginForm, OTPForm
+from app.forms import LoginForm, OTPForm, RegisterForm
 from app.utils import generate_otp, store_otp_in_session, verify_otp_from_session, send_otp_email
 
 auth_bp = Blueprint("auth", __name__)
@@ -23,6 +24,48 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("crud.users_list"))
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    """
+    Public user registration.
+    Validates required fields, verifies email uniqueness, hashes password,
+    and redirects to login upon success.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for("crud.users_list"))
+
+    form = RegisterForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+
+        # Check for duplicate email
+        if User.query.filter_by(email=email).first():
+            flash(
+                f"El correo «{email}» ya se encuentra registrado. Por favor inicia sesión o usa otro correo.",
+                "danger",
+            )
+            return render_template("register.html", form=form)
+
+        user = User(
+            nombre=form.nombre.data.strip(),
+            email=email,
+            rol=form.rol.data,
+        )
+        user.set_password(form.password.data)
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash(
+            f"¡Cuenta creada con éxito para {user.nombre}! Por favor inicia sesión.",
+            "success",
+        )
+        return redirect(url_for("auth.login"))
+
+    return render_template("register.html", form=form)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
