@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Usuario – Flask Lab{% endblock %}
+{% block page_title %}Crear Usuario{% endblock %}
+{% block breadcrumb %}Panel / Usuarios / Nuevo{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <a href="{{ url_for('crud.users_list') }}" class="btn btn-secondary btn-sm">← Volver</a>
+    <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);">Registrar nuevo usuario</h2>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">👤 Datos del Usuario</span>
+      <span style="font-size:12px;color:var(--text-muted);">Todos los campos son obligatorios</span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('crud.users_create') }}" novalidate id="createForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label class="form-label" for="nombre">
+            👤 {{ form.nombre.label.text }}
+          </label>
+          {{ form.nombre(
+            class="form-control" + (" is-invalid" if form.nombre.errors else ""),
+            id="nombre", autofocus=true
+          ) }}
+          {% for error in form.nombre.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="email">
+            📧 {{ form.email.label.text }}
+          </label>
+          {{ form.email(
+            class="form-control" + (" is-invalid" if form.email.errors else ""),
+            id="email"
+          ) }}
+          {% for error in form.email.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Rol -->
+        <div class="form-group">
+          <label class="form-label" for="rol">
+            🏷️ {{ form.rol.label.text }}
+          </label>
+          {{ form.rol(
+            class="form-control form-select" + (" is-invalid" if form.rol.errors else ""),
+            id="rol"
+          ) }}
+          {% for error in form.rol.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <hr style="border-color:var(--border-color);margin:20px 0;">
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="password">
+            🔑 {{ form.password.label.text }}
+          </label>
+          <div style="position:relative;">
+            {{ form.password(
+              class="form-control" + (" is-invalid" if form.password.errors else ""),
+              id="password", style="padding-right:48px;"
+            ) }}
+            <button type="button" class="toggle-pwd"
+                    data-target="password"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.password.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+
+          <!-- Password strength bar -->
+          <div style="margin-top:8px;">
+            <div style="height:4px;background:var(--border-color);border-radius:2px;overflow:hidden;">
+              <div id="strengthBar" style="height:100%;width:0;transition:width 0.3s,background 0.3s;border-radius:2px;"></div>
+            </div>
+            <div id="strengthLabel" style="font-size:11px;color:var(--text-muted);margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">
+            🔑 {{ form.confirm_password.label.text }}
+          </label>
+          <div style="position:relative;">
+            {{ form.confirm_password(
+              class="form-control" + (" is-invalid" if form.confirm_password.errors else ""),
+              id="confirm_password", style="padding-right:48px;"
+            ) }}
+            <button type="button" class="toggle-pwd"
+                    data-target="confirm_password"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.confirm_password.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <a href="{{ url_for('crud.users_list') }}" class="btn btn-secondary" style="flex:1;justify-content:center;">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;"
+                  id="submitBtn">
+            ＋ Crear Usuario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-pwd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      input.type = input.type === 'text' ? 'password' : 'text';
+      btn.textContent = input.type === 'text' ? '🙈' : '👁️';
+    });
+  });
+
+  // Password strength indicator
+  const pwdInput = document.getElementById('password');
+  const bar      = document.getElementById('strengthBar');
+  const label    = document.getElementById('strengthLabel');
+
+  pwdInput.addEventListener('input', () => {
+    const v = pwdInput.value;
+    let score = 0;
+    if (v.length >= 8)               score++;
+    if (/[A-Z]/.test(v))             score++;
+    if (/[0-9]/.test(v))             score++;
+    if (/[^A-Za-z0-9]/.test(v))      score++;
+
+    const levels = [
+      { pct: '0%',   color: 'transparent', text: '' },
+      { pct: '25%',  color: '#ef4444',     text: '🔴 Muy débil' },
+      { pct: '50%',  color: '#f59e0b',     text: '🟡 Débil' },
+      { pct: '75%',  color: '#38bdf8',     text: '🔵 Buena' },
+      { pct: '100%', color: '#22c55e',     text: '🟢 Fuerte' },
+    ];
+    const lvl = levels[score] || levels[0];
+    bar.style.width     = lvl.pct;
+    bar.style.background= lvl.color;
+    label.textContent   = lvl.text;
+  });
+</script>
+{% endblock %}

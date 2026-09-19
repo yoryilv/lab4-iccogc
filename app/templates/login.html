@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión – Flask Lab{% endblock %}
+
+{% block auth_content %}
+<div class="auth-page">
+  <div class="auth-container">
+
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="auth-logo">🔐</div>
+      <h1 style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">
+        Flask Lab
+      </h1>
+      <p style="font-size:14px;color:var(--text-muted);">
+        Panel de Administración · Laboratorio 4
+      </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}" role="alert">
+      <span>{% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else
+        %}ℹ️{% endif %}</span>
+      <span>{{ message }}</span>
+      <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Login Card -->
+    <div class="auth-card">
+      <h2 class="auth-title">Bienvenido de vuelta</h2>
+      <p class="auth-subtitle">Ingresa tus credenciales para continuar</p>
+
+      <form method="POST" action="{{ url_for('auth.login') }}" novalidate id="loginForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="email">
+            📧 {{ form.email.label.text }}
+          </label>
+          {{ form.email(
+          class="form-control" + (" is-invalid" if form.email.errors else ""),
+          id="email"
+          ) }}
+          {% for error in form.email.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="password">
+            🔑 {{ form.password.label.text }}
+          </label>
+          <div style="position:relative;">
+            {{ form.password(
+            class="form-control" + (" is-invalid" if form.password.errors else ""),
+            id="password",
+            style="padding-right:48px;"
+            ) }}
+            <button type="button" id="togglePwd" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);
+                           font-size:16px;padding:4px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.password.errors %}
+          <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary" id="submitBtn"
+          style="width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:8px;">
+          <span id="submitText">Iniciar Sesión</span>
+          <span id="submitSpinner" style="display:none;">⏳</span>
+        </button>
+      </form>
+
+      <!-- Info box -->
+      <div style="margin-top:24px;padding:14px 16px;background:rgba(99,102,241,0.08);
+                  border:1px solid rgba(99,102,241,0.2);border-radius:8px;font-size:13px;
+                  color:var(--text-muted);">
+        <strong style="color:var(--accent);">💡 Acceso de demostración</strong><br>
+        Email: <code style="color:var(--text-primary);">admin@lab.com</code> &nbsp;|&nbsp;
+        Contraseña: <code style="color:var(--text-primary);">Admin1234!</code>
+      </div>
+    </div>
+
+    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-muted);">
+      Flask Lab · Laboratorio de Desarrollo Web Cognitivo
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Toggle password visibility
+  const pwd = document.getElementById('password');
+  const toggle = document.getElementById('togglePwd');
+  toggle.addEventListener('click', () => {
+    const isText = pwd.type === 'text';
+    pwd.type = isText ? 'password' : 'text';
+    toggle.textContent = isText ? '👁️' : '🙈';
+  });
+
+  // Loading state on submit
+  document.getElementById('loginForm').addEventListener('submit', () => {
+    const btn = document.getElementById('submitBtn');
+    const text = document.getElementById('submitText');
+    const spin = document.getElementById('submitSpinner');
+    btn.disabled = true;
+    text.textContent = 'Verificando...';
+    spin.style.display = 'inline';
+  });
+</script>
+{% endblock %}

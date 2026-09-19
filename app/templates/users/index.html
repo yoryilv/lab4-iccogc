@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios – Flask Lab{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+{% block breadcrumb %}Panel / Usuarios{% endblock %}
+
+{% block content %}
+
+<!-- Stats row -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon purple">👥</div>
+    <div>
+      <div class="stat-label">Total Usuarios</div>
+      <div class="stat-value">{{ pagination.total }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">👑</div>
+    <div>
+      <div class="stat-label">Administradores</div>
+      <div class="stat-value">
+        {{ users | selectattr('rol', 'equalto', 'admin') | list | length }}
+      </div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-label">Esta página</div>
+      <div class="stat-value">{{ users | length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Users card -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">📋 Listado de Usuarios</h2>
+
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <!-- Search -->
+      <form method="GET" action="{{ url_for('crud.users_list') }}" style="display:flex;">
+        <div class="search-bar">
+          <span style="color:var(--text-muted);font-size:15px;">🔍</span>
+          <input type="text" name="q" value="{{ search }}"
+                 placeholder="Buscar por nombre o email…"
+                 id="searchInput">
+        </div>
+        {% if search %}
+          <a href="{{ url_for('crud.users_list') }}"
+             style="margin-left:8px;" class="btn btn-secondary btn-sm">✕</a>
+        {% endif %}
+      </form>
+
+      <!-- New user button -->
+      <a href="{{ url_for('crud.users_create') }}" class="btn btn-primary" id="newUserBtn">
+        ＋ Nuevo Usuario
+      </a>
+    </div>
+  </div>
+
+  <!-- Table -->
+  {% if users %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Correo Electrónico</th>
+          <th>Rol</th>
+          <th>Creado</th>
+          <th style="text-align:center;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;font-family:'JetBrains Mono',monospace;">
+            {{ loop.index + (pagination.page - 1) * pagination.per_page }}
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="user-avatar" style="width:34px;height:34px;font-size:13px;flex-shrink:0;">
+                {{ user.nombre[0].upper() }}
+              </div>
+              <div>
+                <div style="font-weight:600;">{{ user.nombre }}</div>
+                <div style="font-size:11px;color:var(--text-muted);">ID: {{ user.id[:8] }}…</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--text-secondary);">{{ user.email }}</td>
+          <td>
+            <span class="badge badge-{{ user.rol }}">
+              {% if user.rol == 'admin' %}👑 Admin{% else %}👤 Usuario{% endif %}
+            </span>
+          </td>
+          <td style="color:var(--text-muted);font-size:13px;">
+            {{ user.created_at.strftime('%d/%m/%Y') }}
+          </td>
+          <td style="text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <!-- Edit -->
+              <a href="{{ url_for('crud.users_edit', user_id=user.id) }}"
+                 class="btn btn-warning btn-sm btn-icon"
+                 title="Editar usuario"
+                 id="editBtn_{{ loop.index }}">✏️</a>
+
+              <!-- Delete -->
+              {% if user.id != current_user.id %}
+              <button type="button"
+                      class="btn btn-danger btn-sm btn-icon"
+                      title="Eliminar usuario"
+                      id="deleteBtn_{{ loop.index }}"
+                      data-user-id="{{ user.id }}"
+                      data-user-name="{{ user.nombre | e }}"
+                      data-delete-url="{{ url_for('crud.users_delete', user_id=user.id) }}"
+                      onclick="openDeleteModal(this.dataset.userId, this.dataset.userName, this.dataset.deleteUrl)">🗑️</button>
+              {% else %}
+              <button type="button" class="btn btn-sm btn-icon"
+                      style="opacity:0.3;cursor:not-allowed;"
+                      title="No puedes eliminar tu propia cuenta" disabled>🔒</button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="pagination" aria-label="Paginación">
+    <!-- Prev -->
+    <div class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('crud.users_list', page=pagination.prev_num, q=search) }}">‹</a>
+      {% else %}
+        <span>‹</span>
+      {% endif %}
+    </div>
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <div class="page-item {% if p == pagination.page %}active{% endif %}">
+          {% if p == pagination.page %}
+            <span>{{ p }}</span>
+          {% else %}
+            <a href="{{ url_for('crud.users_list', page=p, q=search) }}">{{ p }}</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="page-item"><span style="border:none;background:none;">…</span></div>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Next -->
+    <div class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      {% if pagination.has_next %}
+        <a href="{{ url_for('crud.users_list', page=pagination.next_num, q=search) }}">›</a>
+      {% else %}
+        <span>›</span>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="empty-state">
+    <div class="empty-icon">👤</div>
+    <div class="empty-title">
+      {% if search %}No se encontraron usuarios con "{{ search }}"
+      {% else %}No hay usuarios registrados{% endif %}
+    </div>
+    <div class="empty-desc" style="margin-bottom:20px;">
+      {% if search %}
+        Intenta con otro término de búsqueda.
+      {% else %}
+        Crea el primer usuario con el botón de arriba.
+      {% endif %}
+    </div>
+    {% if not search %}
+      <a href="{{ url_for('crud.users_create') }}" class="btn btn-primary">
+        ＋ Crear primer usuario
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Live search with debounce
+  let searchTimer;
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => searchInput.form.submit(), 400);
+    });
+  }
+</script>
+{% endblock %}

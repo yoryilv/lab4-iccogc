@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario – Flask Lab{% endblock %}
+{% block page_title %}Editar Usuario{% endblock %}
+{% block breadcrumb %}Panel / Usuarios / Editar{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <a href="{{ url_for('crud.users_list') }}" class="btn btn-secondary btn-sm">← Volver</a>
+    <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);">
+      Editando: {{ user.nombre }}
+    </h2>
+  </div>
+
+  <!-- User info card -->
+  <div style="padding:16px 20px;background:var(--accent-light);border:1px solid rgba(99,102,241,0.3);
+              border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+    <div class="user-avatar" style="width:44px;height:44px;font-size:18px;flex-shrink:0;">
+      {{ user.nombre[0].upper() }}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:15px;">{{ user.nombre }}</div>
+      <div style="font-size:13px;color:var(--text-muted);">
+        {{ user.email }}
+        {% if user.id == current_user.id %}
+          <span style="color:var(--accent);font-weight:600;"> · (Tú)</span>
+        {% endif %}
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+        Creado: {{ user.created_at.strftime('%d/%m/%Y a las %H:%M') }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">✏️ Modificar Datos</span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('crud.users_edit', user_id=user.id) }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label class="form-label" for="nombre">
+            👤 {{ form.nombre.label.text }}
+          </label>
+          {{ form.nombre(
+            class="form-control" + (" is-invalid" if form.nombre.errors else ""),
+            id="nombre"
+          ) }}
+          {% for error in form.nombre.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="email">
+            📧 {{ form.email.label.text }}
+          </label>
+          {{ form.email(
+            class="form-control" + (" is-invalid" if form.email.errors else ""),
+            id="email"
+          ) }}
+          {% for error in form.email.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Rol -->
+        <div class="form-group">
+          <label class="form-label" for="rol">
+            🏷️ {{ form.rol.label.text }}
+          </label>
+          {{ form.rol(
+            class="form-control form-select" + (" is-invalid" if form.rol.errors else ""),
+            id="rol"
+          ) }}
+          {% for error in form.rol.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <hr style="border-color:var(--border-color);margin:20px 0;">
+
+        <!-- Password (optional) -->
+        <div style="padding:14px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);
+                    border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
+          ⚠️ Deja los campos de contraseña en blanco si no deseas cambiarla.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">
+            🔑 {{ form.password.label.text }}
+          </label>
+          <div style="position:relative;">
+            {{ form.password(
+              class="form-control" + (" is-invalid" if form.password.errors else ""),
+              id="password", style="padding-right:48px;"
+            ) }}
+            <button type="button" class="toggle-pwd" data-target="password"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.password.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">
+            🔑 {{ form.confirm_password.label.text }}
+          </label>
+          <div style="position:relative;">
+            {{ form.confirm_password(
+              class="form-control" + (" is-invalid" if form.confirm_password.errors else ""),
+              id="confirm_password", style="padding-right:48px;"
+            ) }}
+            <button type="button" class="toggle-pwd" data-target="confirm_password"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;">
+              👁️
+            </button>
+          </div>
+          {% for error in form.confirm_password.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <a href="{{ url_for('crud.users_list') }}" class="btn btn-secondary" style="flex:1;justify-content:center;">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">
+            💾 Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.toggle-pwd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      input.type = input.type === 'text' ? 'password' : 'text';
+      btn.textContent = input.type === 'text' ? '🙈' : '👁️';
+    });
+  });
+</script>
+{% endblock %}

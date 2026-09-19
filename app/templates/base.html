@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Flask Lab – Panel de Administración con autenticación 2FA y gestión de usuarios">
+  <title>{% block title %}Flask Lab{% endblock %}</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<!-- ══ AUTHENTICATED LAYOUT ══════════════════════════════════════════ -->
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="{{ url_for('crud.users_list') }}" class="sidebar-logo">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-text">
+          <span class="logo-title">Flask Lab</span>
+          <span class="logo-sub">Panel de Control</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ current_user.nombre[0].upper() }}</div>
+      <div class="user-info-text">
+        <div class="user-name">{{ current_user.nombre }}</div>
+        <div class="user-role">
+          {% if current_user.is_admin %}👑 Administrador{% else %}👤 Usuario{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Gestión</div>
+      <a href="{{ url_for('crud.users_list') }}"
+         class="{% if request.endpoint and 'crud' in request.endpoint %}active{% endif %}">
+        <span class="nav-icon">👥</span> Usuarios
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+        <span>⬅</span> Cerrar Sesión
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">{% block page_title %}Panel{% endblock %}</div>
+        <div class="topbar-breadcrumb">{% block breadcrumb %}Inicio{% endblock %}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:13px;color:var(--text-muted);">{{ current_user.email }}</span>
+        <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">
+          {{ current_user.nombre[0].upper() }}
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div style="margin-bottom:16px;">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" role="alert">
+                <span>
+                  {% if category == 'success' %}✅{% elif category == 'danger' %}❌
+                  {% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                </span>
+                <span>{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+{% else %}
+<!-- ══ UNAUTHENTICATED LAYOUT ════════════════════════════════════════ -->
+<main>
+  {% block auth_content %}{% endblock %}
+</main>
+{% endif %}
+
+<!-- Delete Confirmation Modal (shared) -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <h3 class="modal-title">¿Eliminar usuario?</h3>
+    <p class="modal-desc" id="deleteModalDesc">
+      Esta acción es permanente y no se puede deshacer.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+      <form id="deleteForm" method="POST" style="flex:1;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+        <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;">
+          Sí, eliminar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Delete Modal ──────────────────────────────
+  function openDeleteModal(userId, userName, deleteUrl) {
+    document.getElementById('deleteModalDesc').textContent =
+      `¿Estás seguro de que deseas eliminar a "${userName}"? Esta acción no se puede deshacer.`;
+    document.getElementById('deleteForm').action = deleteUrl;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteModal();
+  });
+
+  // ── Auto-dismiss alerts ───────────────────────
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => {
+      el.style.transition = 'opacity 0.5s ease';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 500);
+    });
+  }, 5000);
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
